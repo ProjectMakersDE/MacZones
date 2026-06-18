@@ -16,9 +16,6 @@ final class EventTapController {
     private var tap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
-    /// Marks events we synthesise so we never re-process our own injected clicks.
-    fileprivate let syntheticMarker: Int64 = 0x4D43_5A4F_4E45   // arbitrary sentinel
-
     // Left-drag / snap-session state
     private var lmbDown = false
     private var snapArmed = false             // zones currently shown
@@ -80,14 +77,12 @@ final class EventTapController {
     func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         let pass = Unmanaged.passUnretained(event)
 
-        // Re-enable if macOS disabled us (timeout / user input).
+        // Re-enable if macOS disabled us (timeout / user input). Drop any
+        // half-finished right gesture so a swallowed rightMouseUp can't leak.
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             if let tap = tap { CGEvent.tapEnable(tap: tap, enable: true) }
-            return pass
-        }
-
-        // Ignore our own synthesised clicks.
-        if event.getIntegerValueField(.eventSourceUserData) == syntheticMarker {
+            swallowRightUp = false
+            rightHeld = false
             return pass
         }
 
