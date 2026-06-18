@@ -1,12 +1,15 @@
 import Cocoa
 
 /// Owns the on-screen zone overlays during a snap gesture and tracks which
-/// zone(s) the cursor is over. Used by both trigger modes (right-click drag and
+/// zone(s) the cursor is over. Used by both triggers (right-button modifier and
 /// shake-while-dragging).
 ///
-/// Multi-zone selection: the first zone entered becomes the "anchor". The snap
-/// target is the bounding box of the anchor zone and the zone currently under
-/// the cursor, so dragging across several adjacent zones spans them.
+/// Selection modes:
+///  - single: the zone under the cursor is highlighted and follows the cursor.
+///  - multi:  the anchor zone is fixed; the highlight spans the bounding box of
+///            anchor + current zone, so dragging across adjacent zones unions them.
+///  - frozen: after a real multi sweep the union is locked and ignores further
+///            cursor movement until the session ends or is cancelled.
 final class SnapSession {
     static let shared = SnapSession()
 
@@ -18,6 +21,10 @@ final class SnapSession {
     private var anchorZoneID: UUID?
     private var targetRectCG: CGRect?     // window frame to apply, or nil
 
+    private var frozen = false
+    /// True once a multi selection reached a zone other than the anchor.
+    private(set) var didExpand = false
+
     func begin() {
         guard !active else { return }
         ScreenManager.shared.refresh()
@@ -25,6 +32,8 @@ final class SnapSession {
         anchorScreenKey = nil
         anchorZoneID = nil
         targetRectCG = nil
+        frozen = false
+        didExpand = false
 
         for ctx in ScreenManager.shared.contexts {
             let zones = ProfileStore.shared.zones(forScreen: ctx.key)
@@ -35,23 +44,49 @@ final class SnapSession {
         }
     }
 
-    /// Feed the current global cursor position (Quartz / top-left coords).
-    func update(globalPoint p: CGPoint) {
+    /// Begin a multi-zone selection anchored at the cursor's current zone.
+    func beginMulti(at p: CGPoint) {
         guard active else { return }
+        frozen = false
+        didExpand = false
+        anchorScreenKey = nil
+        anchorZoneID = nil
+        update(globalPoint: p, multi: true)
+    }
+
+    /// End a multi-zone selection. Freeze the union if it actually spanned more
+    /// than the anchor; otherwise let single-zone following resume.
+    func endMulti() {
+        frozen = didExpand
+    }
+
+    /// Feed the current global cursor position (Quartz / top-left coords).
+    /// `multi == true` keeps the anchor fixed and unions anchor → current zone;
+    /// `multi == false` lets the single highlighted zone follow the cursor.
+    func update(globalPoint p: CGPoint, multi: Bool) {
+        guard active else { return }
+        if frozen { return }   // locked selection ignores movement
 
         guard let loc = ScreenManager.shared.locate(p) else {
-            clearHighlightOnly()
+            if !multi { clearHighlightOnly() }
             return
         }
         let ctx = loc.ctx
         let zones = ProfileStore.shared.zones(forScreen: ctx.key)
         guard let hit = zones.first(where: { $0.contains(nx: loc.nx, ny: loc.ny) }) else {
-            clearHighlightOnly()
+            if !multi { clearHighlightOnly() }
             return
         }
 
-        // (Re)anchor when starting fresh or moving onto a different screen.
-        if anchorZoneID == nil || anchorScreenKey != ctx.key {
+        if multi {
+            // Anchor once, then keep it fixed; note when the selection expands.
+            if anchorZoneID == nil || anchorScreenKey != ctx.key {
+                anchorScreenKey = ctx.key
+                anchorZoneID = hit.id
+            }
+            if hit.id != anchorZoneID { didExpand = true }
+        } else {
+            // Single zone follows the cursor.
             anchorScreenKey = ctx.key
             anchorZoneID = hit.id
         }
@@ -71,8 +106,7 @@ final class SnapSession {
         }
     }
 
-    /// Clear the visible highlight but keep the anchor, so re-entering a zone
-    /// continues the same multi-zone selection.
+    /// Clear the visible highlight but keep the anchor.
     private func clearHighlightOnly() {
         targetRectCG = nil
         for (_, win) in overlays { win.setHighlight(nil) }
@@ -88,6 +122,8 @@ final class SnapSession {
         anchorScreenKey = nil
         anchorZoneID = nil
         targetRectCG = nil
+        frozen = false
+        didExpand = false
         return target
     }
 
