@@ -76,6 +76,22 @@ open dist
 Das Skript erzeugt ein universelles (Apple Silicon + Intel) `MacZones.app`
 inklusive `.zip` und `.dmg` unter `dist/`.
 
+#### Lokal installieren (mit stabiler Signatur)
+
+Damit lokale Builds dieselbe Signatur-Identität wie die Releases haben (und die
+Bedienungshilfen-Berechtigung erhalten bleibt), einmalig die lokale Signier-
+Identität einrichten, danach jederzeit bauen + nach `/Applications` installieren:
+
+```bash
+./scripts/setup-local-signing.sh        # einmalig: Zertifikat + lokale Keychain (+ CI-Secrets)
+./scripts/install-local.sh 0.4.1        # baut signiert und installiert nach /Applications
+```
+
+`setup-local-signing.sh` legt eine dedizierte Signier-Keychain an
+(`~/Library/Keychains/maczones-signing.keychain-db`) und hinterlegt dasselbe
+Zertifikat als GitHub-Secrets, sodass CI-Releases und lokale Builds identisch
+signiert sind.
+
 ## Berechtigung
 
 MacZones benötigt **Bedienungshilfen** (Accessibility), um Fenster anderer Apps zu
