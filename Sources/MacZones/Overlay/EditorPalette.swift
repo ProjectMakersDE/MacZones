@@ -32,16 +32,21 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         super.init()
 
         panel.title = "MacZones – Zonen bearbeiten"
-        // Sit clearly above the editor overlays (which are at .popUpMenu).
-        panel.level = NSWindow.Level(rawValue: NSWindow.Level.popUpMenu.rawValue + 5)
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
         panel.becomesKeyOnlyIfNeeded = false
         panel.delegate = self
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        // IMPORTANT: set the level LAST. `isFloatingPanel = true` resets the
+        // level to .floating, which would put the palette *below* the editor
+        // overlays (.popUpMenu). Assigning afterwards keeps it clearly on top.
+        panel.level = EditorPalette.topLevel
 
         buildUI()
     }
+
+    /// Above the editor overlay windows (which are at `.popUpMenu`).
+    private static let topLevel = NSWindow.Level(rawValue: NSWindow.Level.popUpMenu.rawValue + 10)
 
     private func buildUI() {
         let content = NSStackView()
@@ -238,6 +243,7 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         let size = panel.frame.size
         panel.setFrameOrigin(CGPoint(x: f.midX - size.width / 2,
                                      y: f.maxY - size.height - 40))
+        panel.level = EditorPalette.topLevel
         panel.orderFrontRegardless()
         panel.makeKeyAndOrderFront(nil)
     }
