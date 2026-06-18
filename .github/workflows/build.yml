@@ -36,6 +36,29 @@ jobs:
             echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Import signing certificate
+        env:
+          CERT_P12_BASE64: ${{ secrets.SIGNING_CERTIFICATE_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -z "$CERT_P12_BASE64" ]; then
+            echo "No signing certificate secret set — will ad-hoc sign."
+            exit 0
+          fi
+          KEYCHAIN="$RUNNER_TEMP/maczones-signing.keychain-db"
+          KCPWD="$(uuidgen)"
+          echo "$CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KCPWD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KCPWD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KCPWD" "$KEYCHAIN" >/dev/null
+          # Add our keychain to the search list so codesign can resolve the identity.
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | sed 's/[\" ]//g' | tr '\n' ' ')
+          rm -f "$RUNNER_TEMP/cert.p12"
+          echo "SIGN_IDENTITY=MacZones Self-Signed" >> "$GITHUB_ENV"
+          echo "SIGN_KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+
       - name: Build app bundle
         run: ./scripts/build-app.sh "${{ steps.ver.outputs.version }}"
 
@@ -61,6 +84,10 @@ jobs:
 
             Leichtgewichtiges Window-Zonen-Snapping für macOS.
 
+            Signiert mit einem stabilen, selbstsignierten Zertifikat – die
+            Bedienungshilfen-Berechtigung bleibt über zukünftige Updates erhalten.
+            Updates lassen sich direkt im Menü („Auf Updates prüfen …") laden.
+
             ### Installation
             1. `MacZones.dmg` öffnen und **MacZones.app** in den Programme-Ordner ziehen
                (oder `MacZones.zip` entpacken).
@@ -71,3 +98,7 @@ jobs:
                ```
             3. MacZones starten und in **Systemeinstellungen › Datenschutz &
                Sicherheit › Bedienungshilfen** die Berechtigung erteilen.
+
+            > Beim Wechsel von einer älteren (ad-hoc signierten) Version bitte den
+            > alten „MacZones"-Eintrag in den Bedienungshilfen einmal entfernen (−)
+            > und neu hinzufügen. Ab dieser Version bleibt die Berechtigung erhalten.

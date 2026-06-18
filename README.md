@@ -87,6 +87,37 @@ bewegen und Mausgesten zu erkennen:
 Kein Neustart nötig – sobald die Berechtigung erteilt ist, funktioniert MacZones
 sofort.
 
+**Berechtigung bleibt über Updates erhalten:** Die Release-Builds werden mit
+einem **stabilen, selbstsignierten Zertifikat** signiert (gleiche Identität bei
+jedem Build). macOS bindet die Bedienungshilfen-Freigabe an diese Identität –
+deshalb muss sie nur **einmal** erteilt werden und bleibt bei künftigen Updates
+bestehen. (Beim Wechsel von einer alten ad-hoc-signierten Version den alten
+„MacZones"-Eintrag einmal entfernen (−) und neu hinzufügen.)
+
+## Updates
+
+MacZones aktualisiert sich über GitHub-Releases:
+
+- Menü → **„Auf Updates prüfen …"** lädt das neueste Release, installiert es und
+  startet MacZones neu (die Berechtigung bleibt dank gleichem Zertifikat
+  erhalten).
+- **„Beim Start nach Updates suchen"** (Standard: an) macht beim Start *einen*
+  stillen Check; ist eine neuere Version verfügbar, erscheint im Menü ein
+  Hinweis. Kein Hintergrund-Polling.
+- Die installierte Version steht oben im Menü und unter **„Über MacZones"**.
+
+### Signatur-Zertifikat (für Maintainer)
+
+Das Signatur-Zertifikat wird einmalig erzeugt und als GitHub-Secrets hinterlegt:
+
+```bash
+./scripts/create-signing-cert.sh ProjectMakersDE/MacZones
+```
+
+Das setzt die Secrets `SIGNING_CERTIFICATE_P12_BASE64` und
+`SIGNING_CERTIFICATE_PASSWORD`. Der Build-Workflow importiert sie und signiert
+damit. Ohne diese Secrets fällt der Build automatisch auf Ad-hoc-Signatur zurück.
+
 ## Bedienung in Kürze
 
 | Aktion | So geht's |

@@ -23,9 +23,18 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     // MARK: Build menu
 
+    /// Set by the launch-time silent update check.
+    var availableUpdateVersion: String?
+    func setAvailableUpdate(_ version: String?) { availableUpdateVersion = version }
+
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         let store = ProfileStore.shared
+
+        let header = NSMenuItem(title: "MacZones \(AppInfo.version)", action: nil, keyEquivalent: "")
+        header.isEnabled = false
+        menu.addItem(header)
+        menu.addItem(.separator())
 
         add(menu, "Zonen bearbeiten", #selector(toggleEditor), key: "")
             .setShortcutHint(HotKey.defaultDescription)
@@ -66,6 +75,23 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         let loginItem = add(menu, "Bei Anmeldung starten", #selector(toggleLaunchAtLogin))
         loginItem.state = launchAtLoginEnabled ? .on : .off
+
+        menu.addItem(.separator())
+
+        // Updates
+        if let v = availableUpdateVersion {
+            let updateItem = add(menu, "⤓ Update auf \(v) verfügbar …", #selector(checkUpdates))
+            updateItem.attributedTitle = NSAttributedString(
+                string: "⤓ Update auf \(v) verfügbar …",
+                attributes: [.foregroundColor: NSColor.controlAccentColor,
+                             .font: NSFont.menuFont(ofSize: 0)])
+        } else {
+            add(menu, "Auf Updates prüfen …", #selector(checkUpdates))
+        }
+        add(menu, "Beim Start nach Updates suchen", #selector(toggleAutoCheck))
+            .state = store.autoCheckUpdates ? .on : .off
+
+        menu.addItem(.separator())
 
         // Permission is always reachable from the menu, showing its current state.
         let trusted = Permissions.isTrusted
@@ -116,12 +142,20 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         ProfileStore.shared.shakeEnabled.toggle()
     }
     @objc private func openAccessibility() {
+        // In case permission was just granted, (re)start the tap now.
+        EventTapController.shared.start()
         Permissions.requestIfNeeded()
         Permissions.openAccessibilitySettings()
     }
+    @objc private func checkUpdates() {
+        UpdateChecker.shared.checkManually()
+    }
+    @objc private func toggleAutoCheck() {
+        ProfileStore.shared.autoCheckUpdates.toggle()
+    }
     @objc private func about() {
         let alert = NSAlert()
-        alert.messageText = "MacZones"
+        alert.messageText = "MacZones \(AppInfo.version)"
         alert.informativeText = """
         Leichtgewichtiges Fenster-Zonen-Snapping für macOS.
 

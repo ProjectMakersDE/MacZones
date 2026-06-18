@@ -30,6 +30,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Permissions.requestIfNeeded()
             startPermissionRetry()
         }
+
+        if ProfileStore.shared.autoCheckUpdates {
+            UpdateChecker.shared.checkSilently { [weak self] release in
+                self?.statusBar?.setAvailableUpdate(release?.version)
+            }
+        }
     }
 
     @objc private func screensChanged() {

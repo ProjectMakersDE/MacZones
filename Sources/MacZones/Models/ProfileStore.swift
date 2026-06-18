@@ -12,7 +12,8 @@ final class ProfileStore {
         var currentName: String
         var rightClickDragEnabled: Bool
         var shakeEnabled: Bool
-        var seededScreens: [String]?   // optional for backward compatibility
+        var seededScreens: [String]?      // optional for backward compatibility
+        var autoCheckUpdates: Bool?       // optional for backward compatibility
     }
 
     private(set) var profiles: [Profile]
@@ -20,6 +21,7 @@ final class ProfileStore {
     private var seededScreens: Set<String>
     var rightClickDragEnabled: Bool { didSet { save() } }
     var shakeEnabled: Bool { didSet { save() } }
+    var autoCheckUpdates: Bool { didSet { save() } }
 
     private init() {
         if let data = ProfileStore.load() {
@@ -28,12 +30,14 @@ final class ProfileStore {
             rightClickDragEnabled = data.rightClickDragEnabled
             shakeEnabled = data.shakeEnabled
             seededScreens = Set(data.seededScreens ?? [])
+            autoCheckUpdates = data.autoCheckUpdates ?? true
         } else {
             profiles = [Profile(name: "Standard")]
             currentName = "Standard"
             rightClickDragEnabled = true
             shakeEnabled = true
             seededScreens = []
+            autoCheckUpdates = true
         }
         if !profiles.contains(where: { $0.name == currentName }) {
             currentName = profiles.first?.name ?? "Standard"
@@ -136,7 +140,8 @@ final class ProfileStore {
                              currentName: currentName,
                              rightClickDragEnabled: rightClickDragEnabled,
                              shakeEnabled: shakeEnabled,
-                             seededScreens: Array(seededScreens))
+                             seededScreens: Array(seededScreens),
+                             autoCheckUpdates: autoCheckUpdates)
         let url = ProfileStore.fileURL
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
                                                  withIntermediateDirectories: true)

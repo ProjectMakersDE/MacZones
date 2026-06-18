@@ -69,12 +69,20 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-echo "==> Ad-hoc signing"
-codesign --force --deep --options runtime --sign - "$APP" || \
-    codesign --force --deep --sign - "$APP"
+# Signing identity: a stable self-signed certificate (so the Accessibility
+# permission survives updates). Falls back to ad-hoc ("-") for local dev.
+IDENTITY="${SIGN_IDENTITY:--}"
+
+echo "==> Signing with identity: $IDENTITY"
+if [[ -n "${SIGN_KEYCHAIN:-}" ]]; then
+    codesign --force --deep --keychain "$SIGN_KEYCHAIN" --sign "$IDENTITY" "$APP"
+else
+    codesign --force --deep --sign "$IDENTITY" "$APP"
+fi
 
 echo "==> Verifying signature"
 codesign --verify --deep --strict "$APP" && echo "   signature ok"
+codesign -dvv "$APP" 2>&1 | grep -E "Authority|Identifier|TeamIdentifier" || true
 
 echo "==> Creating archives"
 ( cd "$DIST_DIR" && ditto -c -k --sequesterRsrc --keepParent "$APP_NAME.app" "$APP_NAME.zip" )
