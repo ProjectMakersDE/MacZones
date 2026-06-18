@@ -1,4 +1,4 @@
-name: Build Maxons
+name: Build MacZones
 
 on:
   push:
@@ -42,10 +42,10 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Maxons-${{ steps.ver.outputs.version }}
+          name: MacZones-${{ steps.ver.outputs.version }}
           path: |
-            dist/Maxons.zip
-            dist/Maxons.dmg
+            dist/MacZones.zip
+            dist/MacZones.dmg
           if-no-files-found: error
 
       - name: Publish release
@@ -53,21 +53,21 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/Maxons.zip
-            dist/Maxons.dmg
+            dist/MacZones.zip
+            dist/MacZones.dmg
           generate_release_notes: true
           body: |
-            ## Maxons ${{ steps.ver.outputs.version }}
+            ## MacZones ${{ steps.ver.outputs.version }}
 
             Leichtgewichtiges Window-Zonen-Snapping für macOS.
 
             ### Installation
-            1. `Maxons.dmg` öffnen und **Maxons.app** in den Programme-Ordner ziehen
-               (oder `Maxons.zip` entpacken).
+            1. `MacZones.dmg` öffnen und **MacZones.app** in den Programme-Ordner ziehen
+               (oder `MacZones.zip` entpacken).
             2. Da die App nicht über Apple notarisiert ist, einmalig die
                Gatekeeper-Quarantäne entfernen:
                ```
-               xattr -dr com.apple.quarantine /Applications/Maxons.app
+               xattr -dr com.apple.quarantine /Applications/MacZones.app
                ```
-            3. Maxons starten und in **Systemeinstellungen › Datenschutz &
+            3. MacZones starten und in **Systemeinstellungen › Datenschutz &
                Sicherheit › Bedienungshilfen** die Berechtigung erteilen.

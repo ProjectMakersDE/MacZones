@@ -1,8 +1,8 @@
-# Maxons
+# MacZones
 
 **Leichtgewichtiges Fenster-Zonen-Snapping für macOS.**
 
-Maxons ist eine bewusst minimale Alternative zu Tools wie
+MacZones ist eine bewusst minimale Alternative zu Tools wie
 [MacsyZones](https://github.com/rohanrhu/MacsyZones). Es kann genau eine Sache –
 Fenster in selbst definierte Zonen einrasten – und tut das mit **nahezu 0 % CPU
 im Leerlauf**.
@@ -10,10 +10,10 @@ im Leerlauf**.
 ## Warum?
 
 Viele Window-Manager laufen mit dauerhaft hoher CPU-Last (Polling, Analyse,
-Hintergrund-Tasks). Maxons hat **keine Timer und kein Polling**. Die gesamte
+Hintergrund-Tasks). MacZones hat **keine Timer und kein Polling**. Die gesamte
 Laufzeit-Aktivität hängt an einem einzigen passiven `CGEventTap`, der **nur dann
 feuert, wenn tatsächlich eine Maustaste gedrückt ist** (Down / Up / Drag).
-Bewegt man die Maus ohne gedrückte Taste, bekommt Maxons gar kein Event. Im
+Bewegt man die Maus ohne gedrückte Taste, bekommt MacZones gar kein Event. Im
 Ruhezustand entstehen also keine Wakeups und keine messbare CPU-Last.
 
 ## Funktionen (und nur die)
@@ -44,40 +44,47 @@ Leistung zieht.
 
 ### Fertige Version (empfohlen)
 
-1. Unter [Releases](../../releases) die aktuelle `Maxons.dmg` (oder `.zip`)
+1. Unter [Releases](../../releases) die aktuelle `MacZones.dmg` (oder `.zip`)
    herunterladen.
-2. `Maxons.app` in den Ordner **Programme** ziehen.
+2. `MacZones.app` in den Ordner **Programme** ziehen.
 3. Da die App nicht über Apple notarisiert ist, einmalig die
    Gatekeeper-Quarantäne entfernen:
    ```bash
-   xattr -dr com.apple.quarantine /Applications/Maxons.app
+   xattr -dr com.apple.quarantine /Applications/MacZones.app
    ```
-4. Maxons starten. Beim ersten Start nach der **Bedienungshilfen**-Berechtigung
-   fragen lassen (siehe unten).
+4. MacZones ganz normal aus **Programme** öffnen (Doppelklick). Es erscheint
+   **kein Dock-Symbol** – MacZones ist ein Menüleisten-Tool und zeigt sein
+   Symbol oben rechts in der Menüleiste. Über dieses Symbol erreichst du alle
+   Einstellungen (Profile, Raster, Berechtigung, Bei Anmeldung starten …).
+   Öffnest du die App erneut aus „Programme", während sie schon läuft, klappt
+   automatisch ihr Menü auf.
+5. Beim ersten Start nach der **Bedienungshilfen**-Berechtigung fragen lassen
+   (siehe unten). Die Berechtigung kannst du jederzeit auch über das
+   Menüleisten-Menü erteilen.
 
 ### Selbst bauen
 
 Voraussetzung: macOS 13+, Xcode / Swift 5.9+.
 
 ```bash
-git clone <repo-url>
-cd maxons
+git clone https://github.com/ProjectMakersDE/MacZones.git
+cd MacZones
 ./scripts/build-app.sh
 open dist
 ```
 
-Das Skript erzeugt ein universelles (Apple Silicon + Intel) `Maxons.app`
+Das Skript erzeugt ein universelles (Apple Silicon + Intel) `MacZones.app`
 inklusive `.zip` und `.dmg` unter `dist/`.
 
 ## Berechtigung
 
-Maxons benötigt **Bedienungshilfen** (Accessibility), um Fenster anderer Apps zu
+MacZones benötigt **Bedienungshilfen** (Accessibility), um Fenster anderer Apps zu
 bewegen und Mausgesten zu erkennen:
 
 > Systemeinstellungen › Datenschutz & Sicherheit › **Bedienungshilfen** →
-> Maxons aktivieren.
+> MacZones aktivieren.
 
-Kein Neustart nötig – sobald die Berechtigung erteilt ist, funktioniert Maxons
+Kein Neustart nötig – sobald die Berechtigung erteilt ist, funktioniert MacZones
 sofort.
 
 ## Bedienung in Kürze

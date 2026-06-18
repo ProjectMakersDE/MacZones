@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "Maxons",
+    name: "MacZones",
     platforms: [
         .macOS(.v13)
     ],
     targets: [
         .executableTarget(
-            name: "Maxons",
-            path: "Sources/Maxons"
+            name: "MacZones",
+            path: "Sources/MacZones"
         )
     ]
 )

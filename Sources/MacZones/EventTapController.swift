@@ -17,7 +17,7 @@ final class EventTapController {
     private var runLoopSource: CFRunLoopSource?
 
     /// Marks events we synthesise so we never re-process our own injected clicks.
-    fileprivate let syntheticMarker: Int64 = 0x4D41584F4E53   // "MAXONS"
+    fileprivate let syntheticMarker: Int64 = 0x4D43_5A4F_4E45   // arbitrary sentinel
     private let dragThreshold: CGFloat = 6
 
     // Right-button drag state
@@ -53,7 +53,7 @@ final class EventTapController {
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: mask,
-            callback: maxonsEventTapCallback,
+            callback: maczonesEventTapCallback,
             userInfo: Unmanaged.passUnretained(self).toOpaque())
         else {
             return false
@@ -266,7 +266,7 @@ final class EventTapController {
 }
 
 // C callback trampoline — captures nothing, forwards to the controller via refcon.
-private func maxonsEventTapCallback(proxy: CGEventTapProxy,
+private func maczonesEventTapCallback(proxy: CGEventTapProxy,
                                     type: CGEventType,
                                     event: CGEvent,
                                     refcon: UnsafeMutableRawPointer?) -> Unmanaged<CGEvent>? {

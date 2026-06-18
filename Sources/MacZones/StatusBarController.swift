@@ -9,7 +9,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     override init() {
         super.init()
         if let button = statusItem.button {
-            if let img = NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: "Maxons") {
+            if let img = NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: "MacZones") {
                 img.isTemplate = true
                 button.image = img
             } else {
@@ -67,16 +67,21 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let loginItem = add(menu, "Bei Anmeldung starten", #selector(toggleLaunchAtLogin))
         loginItem.state = launchAtLoginEnabled ? .on : .off
 
-        if !Permissions.isTrusted {
-            let warn = add(menu, "⚠︎ Bedienungshilfen aktivieren …", #selector(openAccessibility))
-            warn.attributedTitle = NSAttributedString(
-                string: "⚠︎ Bedienungshilfen aktivieren …",
+        // Permission is always reachable from the menu, showing its current state.
+        let trusted = Permissions.isTrusted
+        let permTitle = trusted
+            ? "Bedienungshilfen-Berechtigung: aktiv ✓"
+            : "⚠︎ Bedienungshilfen-Berechtigung erteilen …"
+        let permItem = add(menu, permTitle, #selector(openAccessibility))
+        if !trusted {
+            permItem.attributedTitle = NSAttributedString(
+                string: permTitle,
                 attributes: [.foregroundColor: NSColor.systemRed])
         }
 
         menu.addItem(.separator())
-        add(menu, "Über Maxons", #selector(about))
-        add(menu, "Maxons beenden", #selector(quit), key: "q")
+        add(menu, "Über MacZones", #selector(about))
+        add(menu, "MacZones beenden", #selector(quit), key: "q")
     }
 
     @discardableResult
@@ -116,7 +121,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
     @objc private func about() {
         let alert = NSAlert()
-        alert.messageText = "Maxons"
+        alert.messageText = "MacZones"
         alert.informativeText = """
         Leichtgewichtiges Fenster-Zonen-Snapping für macOS.
 
@@ -126,7 +131,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         • Mehrere benachbarte Zonen überstreichen, um sie zusammenzufassen.
         • Zonen bearbeiten: \(HotKey.defaultDescription)
 
-        Im Leerlauf benötigt Maxons praktisch keine CPU.
+        Im Leerlauf benötigt MacZones praktisch keine CPU.
         """
         alert.runModal()
     }
@@ -152,6 +157,12 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         } catch {
             NSSound.beep()
         }
+    }
+
+    /// Pop the menu open programmatically (used when the app is re-opened from
+    /// the Applications folder while already running).
+    func showMenu() {
+        statusItem.button?.performClick(nil)
     }
 
     // MARK: Helpers

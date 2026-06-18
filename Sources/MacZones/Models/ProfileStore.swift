@@ -1,11 +1,11 @@
 import Foundation
 
 /// Persists profiles + a couple of toggles to
-/// ~/Library/Application Support/Maxons/profiles.json
+/// ~/Library/Application Support/MacZones/profiles.json
 final class ProfileStore {
     static let shared = ProfileStore()
 
-    static let didChange = Notification.Name("MaxonsProfileStoreDidChange")
+    static let didChange = Notification.Name("MacZonesProfileStoreDidChange")
 
     private struct StoreData: Codable {
         var profiles: [Profile]
@@ -102,7 +102,7 @@ final class ProfileStore {
 
     private static var fileURL: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent("Maxons", isDirectory: true)
+        return base.appendingPathComponent("MacZones", isDirectory: true)
             .appendingPathComponent("profiles.json")
     }
 

@@ -28,7 +28,7 @@ final class EditorPalette: NSObject, NSWindowDelegate {
                         backing: .buffered, defer: false)
         super.init()
 
-        panel.title = "Maxons – Zonen bearbeiten"
+        panel.title = "MacZones – Zonen bearbeiten"
         panel.level = NSWindow.Level(rawValue: NSWindow.Level.popUpMenu.rawValue + 1)
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false

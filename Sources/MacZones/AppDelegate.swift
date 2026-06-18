@@ -35,6 +35,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ScreenManager.shared.refresh()
     }
 
+    /// MacZones is a menu-bar app (no Dock icon). When it's launched again from
+    /// the Applications folder while already running, show the menu so it's
+    /// obvious where the controls live.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        statusBar?.showMenu()
+        return true
+    }
+
     /// Until Accessibility is granted we can't install the event tap. Poll only
     /// during this initial window; once granted we start the tap and stop the
     /// timer, after which the app is fully event-driven (~0% CPU at idle).
@@ -51,14 +59,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showFirstRunPermissionPrompt() {
         let alert = NSAlert()
-        alert.messageText = "Maxons benötigt die Bedienungshilfen"
+        alert.messageText = "MacZones benötigt die Bedienungshilfen"
         alert.informativeText = """
-        Damit Maxons Fenster verschieben und Mausgesten erkennen kann, aktiviere \
+        Damit MacZones Fenster verschieben und Mausgesten erkennen kann, aktiviere \
         es bitte in:
 
         Systemeinstellungen › Datenschutz & Sicherheit › Bedienungshilfen
 
-        Danach funktioniert Maxons sofort – kein Neustart nötig.
+        Danach funktioniert MacZones sofort – kein Neustart nötig.
         """
         alert.addButton(withTitle: "Einstellungen öffnen")
         alert.addButton(withTitle: "Später")

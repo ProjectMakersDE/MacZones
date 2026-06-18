@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Builds Maxons.app (universal: arm64 + x86_64), ad-hoc signs it and produces
+# Builds MacZones.app (universal: arm64 + x86_64), ad-hoc signs it and produces
 # a .zip and a .dmg under dist/.
 #
 # Usage: scripts/build-app.sh [version]
@@ -10,8 +10,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-APP_NAME="Maxons"
-BUNDLE_ID="de.projectmakers.maxons"
+APP_NAME="MacZones"
+BUNDLE_ID="de.projectmakers.maczones"
 DIST_DIR="dist"
 
 RAW_VERSION="${1:-${VERSION:-0.0.0-dev}}"
