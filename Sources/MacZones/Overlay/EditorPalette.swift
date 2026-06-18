@@ -19,11 +19,12 @@ final class EditorPalette: NSObject, NSWindowDelegate {
     private let columnsStepper = NSStepper()
     private let rowsStepper = NSStepper()
     private let gapStepper = NSStepper()
-    private let columnsValue = NSTextField(labelWithString: "3")
-    private let rowsValue = NSTextField(labelWithString: "2")
+    private let columnsValue = NSTextField(string: "3")
+    private let rowsValue = NSTextField(string: "2")
     private let gapValue = NSTextField(labelWithString: "0 %")
 
-    private let maxDiv = Grid.maxDivisions   // 6
+    private let maxColumns = Grid.maxColumns
+    private let maxRows = Grid.maxRows
 
     override init() {
         panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 460, height: 300),
@@ -70,10 +71,12 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         content.addArrangedSubview(separator())
 
         // ---- Grid ----
-        content.addArrangedSubview(sectionLabel("Automatisches Raster (max. \(maxDiv) × \(maxDiv))"))
+        content.addArrangedSubview(sectionLabel("Automatisches Raster (max. \(maxColumns) × \(maxRows))"))
 
-        configureStepper(columnsStepper, value: 3)
-        configureStepper(rowsStepper, value: 2)
+        configureStepper(columnsStepper, value: 3, max: maxColumns)
+        configureStepper(rowsStepper, value: 2, max: maxRows)
+        configureNumberField(columnsValue, max: maxColumns)
+        configureNumberField(rowsValue, max: maxRows)
         gapStepper.minValue = 0; gapStepper.maxValue = 8; gapStepper.increment = 1
         gapStepper.integerValue = 0; gapStepper.valueWraps = false
         gapStepper.target = self; gapStepper.action = #selector(gridStepperChanged)
@@ -188,14 +191,30 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         b.widthAnchor.constraint(greaterThanOrEqualToConstant: 380).isActive = true
         return b
     }
-    private func configureStepper(_ s: NSStepper, value: Int) {
+    private func configureStepper(_ s: NSStepper, value: Int, max: Int) {
         s.minValue = 1
-        s.maxValue = Double(maxDiv)
+        s.maxValue = Double(max)
         s.increment = 1
         s.integerValue = value
         s.valueWraps = false
         s.target = self
         s.action = #selector(gridStepperChanged)
+    }
+
+    /// Editable number entry paired with a stepper — lets the user type large
+    /// values directly instead of clicking the stepper dozens of times.
+    private func configureNumberField(_ field: NSTextField, max: Int) {
+        field.alignment = .right
+        field.font = NSFont.systemFont(ofSize: 12)
+        field.target = self
+        field.action = #selector(gridFieldChanged)
+        field.widthAnchor.constraint(equalToConstant: 42).isActive = true
+        let fmt = NumberFormatter()
+        fmt.numberStyle = .none
+        fmt.minimum = 1
+        fmt.maximum = NSNumber(value: max)
+        fmt.allowsFloats = false
+        field.formatter = fmt
     }
 
     // MARK: Actions
@@ -215,6 +234,14 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         columnsValue.stringValue = "\(columnsStepper.integerValue)"
         rowsValue.stringValue = "\(rowsStepper.integerValue)"
         gapValue.stringValue = "\(gapStepper.integerValue) %"
+    }
+
+    /// User typed a value into a column/row field: clamp it and mirror it onto
+    /// the matching stepper so both controls stay in sync.
+    @objc private func gridFieldChanged() {
+        columnsStepper.integerValue = min(max(columnsValue.integerValue, 1), maxColumns)
+        rowsStepper.integerValue = min(max(rowsValue.integerValue, 1), maxRows)
+        gridStepperChanged()
     }
 
     @objc private func presetClicked(_ sender: NSButton) {
