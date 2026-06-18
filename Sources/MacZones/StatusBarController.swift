@@ -68,7 +68,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         menu.addItem(.separator())
 
-        add(menu, "Rechtsklick-Ziehen", #selector(toggleRightClick)).state = store.rightClickDragEnabled ? .on : .off
+        add(menu, "Rechte Maustaste: Zonen ein/aus & Mehrfachauswahl", #selector(toggleRightClick)).state = store.rightClickDragEnabled ? .on : .off
         add(menu, "Beim Fenster-Wackeln einrasten", #selector(toggleShake)).state = store.shakeEnabled ? .on : .off
 
         menu.addItem(.separator())
@@ -159,10 +159,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         alert.informativeText = """
         Leichtgewichtiges Fenster-Zonen-Snapping für macOS.
 
-        • Rechte Maustaste über einem Fenster gedrückt halten und ziehen, \
-        dann über einer Zone loslassen.
-        • Oder ein Fenster ziehen und kurz wackeln – die Zonen erscheinen.
-        • Mehrere benachbarte Zonen überstreichen, um sie zusammenzufassen.
+        • Fenster mit der linken Maustaste ziehen und kurz wackeln – die Zonen erscheinen.
+        • Oder während des Ziehens die rechte Maustaste kurz tippen: Zonen ein/aus.
+        • Rechte Maustaste gedrückt halten und über mehrere Zonen ziehen, um sie \
+        zusammenzufassen; loslassen friert die Auswahl ein.
+        • Linke Maustaste über einer Zone loslassen schnappt das Fenster ein.
         • Zonen bearbeiten: \(HotKey.defaultDescription)
 
         Im Leerlauf benötigt MacZones praktisch keine CPU.
