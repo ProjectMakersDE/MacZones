@@ -44,6 +44,17 @@ final class ScreenManager {
         contexts.first(where: { $0.key == key })
     }
 
+    /// Per-screen default grid dimensions, used to seed empty profiles so zones
+    /// appear out of the box.
+    func defaultSeedSpecs() -> [(key: String, columns: Int, rows: Int)] {
+        contexts.map { ctx in
+            let f = ctx.screen.frame
+            let aspect = f.height > 0 ? Double(f.width / f.height) : 1.78
+            let dims = Grid.defaultDims(aspect: aspect)
+            return (ctx.key, dims.columns, dims.rows)
+        }
+    }
+
     /// Stable per-display identifier (survives reboots / reconnection).
     static func key(for screen: NSScreen) -> String {
         if let num = screen.deviceDescription[NSDeviceDescriptionKey(rawValue: "NSScreenNumber")] as? NSNumber {

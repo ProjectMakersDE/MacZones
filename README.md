@@ -92,6 +92,9 @@ sofort.
 | Aktion | So geht's |
 | --- | --- |
 | Zonen bearbeiten | Menü → „Zonen bearbeiten" oder **⌃⌥Z** |
+| Zone teilen | im Editor **in eine Zone klicken** (teilt an der Stelle); **⌥** = horizontal |
+| Mit einer Zone starten | Palette → „Auf eine Zone zurücksetzen", dann teilen |
+| Auto-Raster | Palette → Schnellauswahl (2×2 … 6×6) oder Spalten/Zeilen einstellen |
 | Fenster einrasten (Rechtsklick) | Rechte Maustaste über Fenster halten → ziehen → über Zone loslassen |
 | Fenster einrasten (Wackeln) | Fenster ziehen → kurz wackeln → über Zone loslassen |
 | Mehrere Zonen | beim Ziehen über benachbarte Zonen streichen |

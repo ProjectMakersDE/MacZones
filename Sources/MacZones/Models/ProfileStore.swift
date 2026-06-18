@@ -12,10 +12,12 @@ final class ProfileStore {
         var currentName: String
         var rightClickDragEnabled: Bool
         var shakeEnabled: Bool
+        var seededScreens: [String]?   // optional for backward compatibility
     }
 
     private(set) var profiles: [Profile]
     private(set) var currentName: String
+    private var seededScreens: Set<String>
     var rightClickDragEnabled: Bool { didSet { save() } }
     var shakeEnabled: Bool { didSet { save() } }
 
@@ -25,15 +27,33 @@ final class ProfileStore {
             currentName = data.currentName
             rightClickDragEnabled = data.rightClickDragEnabled
             shakeEnabled = data.shakeEnabled
+            seededScreens = Set(data.seededScreens ?? [])
         } else {
             profiles = [Profile(name: "Standard")]
             currentName = "Standard"
             rightClickDragEnabled = true
             shakeEnabled = true
+            seededScreens = []
         }
         if !profiles.contains(where: { $0.name == currentName }) {
             currentName = profiles.first?.name ?? "Standard"
         }
+    }
+
+    /// Seed each given screen with a default grid the first time we encounter
+    /// it, so zones appear out of the box. A screen the user later clears stays
+    /// empty (it won't be re-seeded).
+    func seedDefaultsIfNeeded(_ specs: [(key: String, columns: Int, rows: Int)]) {
+        guard let idx = profiles.firstIndex(where: { $0.name == currentName }) else { return }
+        var changed = false
+        for spec in specs where !seededScreens.contains(spec.key) {
+            if (profiles[idx].screens[spec.key] ?? []).isEmpty {
+                profiles[idx].screens[spec.key] = Grid.zones(columns: spec.columns, rows: spec.rows)
+            }
+            seededScreens.insert(spec.key)
+            changed = true
+        }
+        if changed { save() }
     }
 
     // MARK: Current profile access
@@ -115,7 +135,8 @@ final class ProfileStore {
         let data = StoreData(profiles: profiles,
                              currentName: currentName,
                              rightClickDragEnabled: rightClickDragEnabled,
-                             shakeEnabled: shakeEnabled)
+                             shakeEnabled: shakeEnabled,
+                             seededScreens: Array(seededScreens))
         let url = ProfileStore.fileURL
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
                                                  withIntermediateDirectories: true)

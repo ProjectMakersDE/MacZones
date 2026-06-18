@@ -1,7 +1,7 @@
 import Cocoa
 
 /// Floating control panel shown while editing zones: profile management,
-/// auto-grid generation and save / done.
+/// auto-grid generation, split helpers and save / done.
 final class EditorPalette: NSObject, NSWindowDelegate {
     let panel: NSPanel
 
@@ -10,6 +10,7 @@ final class EditorPalette: NSObject, NSWindowDelegate {
     var onDeleteProfile: (() -> Void)?
     var onRenameProfile: (() -> Void)?
     var onApplyGrid: ((Int, Int, Double) -> Void)?
+    var onResetToSingle: (() -> Void)?
     var onClearScreen: (() -> Void)?
     var onSave: (() -> Void)?
     var onDone: (() -> Void)?
@@ -18,20 +19,24 @@ final class EditorPalette: NSObject, NSWindowDelegate {
     private let columnsStepper = NSStepper()
     private let rowsStepper = NSStepper()
     private let gapStepper = NSStepper()
-    private let columnsLabel = NSTextField(labelWithString: "3")
-    private let rowsLabel = NSTextField(labelWithString: "2")
-    private let gapLabel = NSTextField(labelWithString: "0 %")
+    private let columnsValue = NSTextField(labelWithString: "3")
+    private let rowsValue = NSTextField(labelWithString: "2")
+    private let gapValue = NSTextField(labelWithString: "0 %")
+
+    private let maxDiv = Grid.maxDivisions   // 6
 
     override init() {
-        panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 360, height: 250),
+        panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 460, height: 300),
                         styleMask: [.titled, .closable, .utilityWindow, .nonactivatingPanel],
                         backing: .buffered, defer: false)
         super.init()
 
         panel.title = "MacZones – Zonen bearbeiten"
-        panel.level = NSWindow.Level(rawValue: NSWindow.Level.popUpMenu.rawValue + 1)
+        // Sit clearly above the editor overlays (which are at .popUpMenu).
+        panel.level = NSWindow.Level(rawValue: NSWindow.Level.popUpMenu.rawValue + 5)
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
+        panel.becomesKeyOnlyIfNeeded = false
         panel.delegate = self
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
 
@@ -42,50 +47,78 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         let content = NSStackView()
         content.orientation = .vertical
         content.alignment = .leading
-        content.spacing = 12
+        content.spacing = 10
         content.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
         content.translatesAutoresizingMaskIntoConstraints = false
 
-        // Profile row
+        // ---- Profiles ----
         profilePopup.target = self
         profilePopup.action = #selector(profileChanged)
-        let newBtn = button("Neu", #selector(newProfile))
-        let delBtn = button("Löschen", #selector(deleteProfile))
-        let renBtn = button("Umbenennen", #selector(renameProfile))
-        let profileRow = hstack([label("Profil:"), profilePopup, newBtn, delBtn, renBtn])
-
-        // Grid row
-        configureStepper(columnsStepper, min: 1, max: 12, value: 3, action: #selector(gridStepperChanged))
-        configureStepper(rowsStepper, min: 1, max: 12, value: 2, action: #selector(gridStepperChanged))
-        configureStepper(gapStepper, min: 0, max: 8, value: 0, action: #selector(gridStepperChanged))
-
-        let gridRow = hstack([
-            label("Spalten:"), columnsLabel, columnsStepper,
-            label("Zeilen:"), rowsLabel, rowsStepper,
-            label("Lücke:"), gapLabel, gapStepper
+        let profileRow = hstack([
+            label("Profil:"), profilePopup,
+            button("Neu", #selector(newProfile)),
+            button("Löschen", #selector(deleteProfile)),
+            button("Umbenennen", #selector(renameProfile))
         ])
 
+        content.addArrangedSubview(profileRow)
+        content.addArrangedSubview(separator())
+
+        // ---- Grid ----
+        content.addArrangedSubview(sectionLabel("Automatisches Raster (max. \(maxDiv) × \(maxDiv))"))
+
+        configureStepper(columnsStepper, value: 3)
+        configureStepper(rowsStepper, value: 2)
+        gapStepper.minValue = 0; gapStepper.maxValue = 8; gapStepper.increment = 1
+        gapStepper.integerValue = 0; gapStepper.valueWraps = false
+        gapStepper.target = self; gapStepper.action = #selector(gridStepperChanged)
+
+        let gridRow = hstack([
+            label("Spalten:"), columnsValue, columnsStepper,
+            spacerSmall(),
+            label("Zeilen:"), rowsValue, rowsStepper,
+            spacerSmall(),
+            label("Lücke:"), gapValue, gapStepper
+        ])
+        content.addArrangedSubview(gridRow)
+
+        let presets: [(Int, Int)] = [(2, 2), (3, 2), (4, 2), (6, 2), (3, 3), (6, 6)]
+        let presetRow = hstack(presets.map { presetButton($0.0, $0.1) })
+        content.addArrangedSubview(label("Schnellauswahl:"))
+        content.addArrangedSubview(presetRow)
+
         let applyBtn = button("Raster auf Bildschirm unter dem Mauszeiger anwenden", #selector(applyGrid))
-        applyBtn.keyEquivalent = "\r"
-        let clearBtn = button("Bildschirm leeren", #selector(clearScreen))
+        applyBtn.bezelStyle = .rounded
+        content.addArrangedSubview(applyBtn)
+
+        content.addArrangedSubview(separator())
+
+        // ---- Manual / split ----
+        content.addArrangedSubview(sectionLabel("Manuell"))
+        let toolsRow = hstack([
+            button("Auf eine Zone zurücksetzen", #selector(resetToSingle)),
+            button("Bildschirm leeren", #selector(clearScreen))
+        ])
+        content.addArrangedSubview(toolsRow)
 
         let hint = NSTextField(wrappingLabelWithString:
-            "Zone hinzufügen: leere Fläche aufziehen · Verschieben: Zone ziehen · " +
-            "Größe ändern: Ecke unten rechts · ✕: löschen")
+            "In eine Zone klicken, um sie an dieser Stelle zu teilen (⌥ = horizontal). " +
+            "Zone verschieben: ziehen · Größe: Ecke unten rechts · ✕: löschen · " +
+            "Leere Fläche aufziehen: neue Zone.")
         hint.font = NSFont.systemFont(ofSize: 11)
         hint.textColor = .secondaryLabelColor
+        hint.preferredMaxLayoutWidth = 420
+        content.addArrangedSubview(hint)
 
-        // Footer
+        content.addArrangedSubview(separator())
+
+        // ---- Footer ----
         let saveBtn = button("Speichern", #selector(save))
         let doneBtn = button("Fertig", #selector(done))
         doneBtn.keyEquivalent = "\u{1b}" // esc
-        let footer = hstack([NSView(), saveBtn, doneBtn])
-
-        content.addArrangedSubview(profileRow)
-        content.addArrangedSubview(gridRow)
-        content.addArrangedSubview(applyBtn)
-        content.addArrangedSubview(clearBtn)
-        content.addArrangedSubview(hint)
+        doneBtn.bezelStyle = .rounded
+        let footer = hstack([flexibleSpacer(), saveBtn, doneBtn])
+        footer.distribution = .fill
         content.addArrangedSubview(footer)
 
         let container = NSView()
@@ -94,10 +127,13 @@ final class EditorPalette: NSObject, NSWindowDelegate {
             content.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             content.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             content.topAnchor.constraint(equalTo: container.topAnchor),
-            content.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+            content.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            footer.widthAnchor.constraint(equalTo: content.widthAnchor,
+                                          constant: -(content.edgeInsets.left + content.edgeInsets.right))
         ])
         panel.contentView = container
         panel.setContentSize(content.fittingSize)
+        gridStepperChanged()
     }
 
     // MARK: UI helpers
@@ -107,9 +143,20 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         l.font = NSFont.systemFont(ofSize: 12)
         return l
     }
+    private func sectionLabel(_ s: String) -> NSTextField {
+        let l = NSTextField(labelWithString: s)
+        l.font = NSFont.boldSystemFont(ofSize: 12)
+        return l
+    }
     private func button(_ title: String, _ action: Selector) -> NSButton {
         let b = NSButton(title: title, target: self, action: action)
         b.bezelStyle = .rounded
+        b.setButtonType(.momentaryPushIn)
+        return b
+    }
+    private func presetButton(_ c: Int, _ r: Int) -> NSButton {
+        let b = button("\(c)×\(r)", #selector(presetClicked(_:)))
+        b.tag = c * 10 + r
         return b
     }
     private func hstack(_ views: [NSView]) -> NSStackView {
@@ -119,14 +166,31 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         s.alignment = .centerY
         return s
     }
-    private func configureStepper(_ s: NSStepper, min: Double, max: Double, value: Double, action: Selector) {
-        s.minValue = min
-        s.maxValue = max
+    private func spacerSmall() -> NSView {
+        let v = NSView()
+        v.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        return v
+    }
+    private func flexibleSpacer() -> NSView {
+        let v = NSView()
+        v.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        return v
+    }
+    private func separator() -> NSBox {
+        let b = NSBox()
+        b.boxType = .separator
+        b.translatesAutoresizingMaskIntoConstraints = false
+        b.widthAnchor.constraint(greaterThanOrEqualToConstant: 380).isActive = true
+        return b
+    }
+    private func configureStepper(_ s: NSStepper, value: Int) {
+        s.minValue = 1
+        s.maxValue = Double(maxDiv)
         s.increment = 1
-        s.integerValue = Int(value)
+        s.integerValue = value
         s.valueWraps = false
         s.target = self
-        s.action = action
+        s.action = #selector(gridStepperChanged)
     }
 
     // MARK: Actions
@@ -137,14 +201,22 @@ final class EditorPalette: NSObject, NSWindowDelegate {
     @objc private func newProfile() { onNewProfile?() }
     @objc private func deleteProfile() { onDeleteProfile?() }
     @objc private func renameProfile() { onRenameProfile?() }
+    @objc private func resetToSingle() { onResetToSingle?() }
     @objc private func clearScreen() { onClearScreen?() }
     @objc private func save() { onSave?() }
     @objc private func done() { onDone?() }
 
     @objc private func gridStepperChanged() {
-        columnsLabel.stringValue = "\(columnsStepper.integerValue)"
-        rowsLabel.stringValue = "\(rowsStepper.integerValue)"
-        gapLabel.stringValue = "\(gapStepper.integerValue) %"
+        columnsValue.stringValue = "\(columnsStepper.integerValue)"
+        rowsValue.stringValue = "\(rowsStepper.integerValue)"
+        gapValue.stringValue = "\(gapStepper.integerValue) %"
+    }
+
+    @objc private func presetClicked(_ sender: NSButton) {
+        columnsStepper.integerValue = sender.tag / 10
+        rowsStepper.integerValue = sender.tag % 10
+        gridStepperChanged()
+        applyGrid()
     }
 
     @objc private func applyGrid() {
@@ -167,7 +239,7 @@ final class EditorPalette: NSObject, NSWindowDelegate {
         panel.setFrameOrigin(CGPoint(x: f.midX - size.width / 2,
                                      y: f.maxY - size.height - 40))
         panel.orderFrontRegardless()
-        panel.makeKey()
+        panel.makeKeyAndOrderFront(nil)
     }
 
     func close() {

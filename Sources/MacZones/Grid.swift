@@ -22,4 +22,14 @@ enum Grid {
         }
         return result
     }
+
+    /// Capped at 6×6 (the most this tool supports).
+    static let maxDivisions = 6
+
+    /// A sensible starting column/row count for a screen of the given aspect
+    /// ratio: ultra-wide (≈32:9) → 6×2, 16:9 → 3×2, 4:3 → 2×2.
+    static func defaultDims(aspect: Double) -> (columns: Int, rows: Int) {
+        let columns = min(maxDivisions, max(2, Int((aspect * 1.7).rounded())))
+        return (columns, 2)
+    }
 }

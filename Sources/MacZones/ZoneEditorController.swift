@@ -23,8 +23,13 @@ final class ZoneEditorController {
         }
         isOpen = true
         ScreenManager.shared.refresh()
+        ProfileStore.shared.seedDefaultsIfNeeded(ScreenManager.shared.defaultSeedSpecs())
         loadWorkingFromStore()
 
+        // Become a regular app while editing so the palette and editor windows
+        // are fully interactive (a menu-bar/accessory app can't reliably take
+        // key focus). Reverted to accessory on close.
+        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
         for ctx in ScreenManager.shared.contexts {
@@ -36,14 +41,14 @@ final class ZoneEditorController {
             windows.append(win)
         }
 
+        // Palette is created last and sits above the editor windows, so it is
+        // always clickable. We deliberately do NOT make an editor window key.
         let palette = EditorPalette()
         wirePalette(palette)
         palette.reloadProfiles(names: ProfileStore.shared.profiles.map { $0.name },
                                current: ProfileStore.shared.currentName)
         palette.show(near: screenUnderCursor() ?? NSScreen.main ?? NSScreen.screens[0])
         self.palette = palette
-
-        windows.first?.makeKeyAndOrderFront(nil)
     }
 
     func close(save: Bool = true) {
@@ -54,6 +59,7 @@ final class ZoneEditorController {
         palette?.close()
         palette = nil
         isOpen = false
+        NSApp.setActivationPolicy(.accessory)
     }
 
     // MARK: Working copy
@@ -84,6 +90,7 @@ final class ZoneEditorController {
         palette.onDeleteProfile = { [weak self] in self?.deleteProfile() }
         palette.onRenameProfile = { [weak self] in self?.renameProfile() }
         palette.onApplyGrid = { [weak self] c, r, gap in self?.applyGrid(columns: c, rows: r, gap: gap) }
+        palette.onResetToSingle = { [weak self] in self?.resetScreenToSingle() }
         palette.onClearScreen = { [weak self] in self?.clearScreenUnderCursor() }
         palette.onSave = { [weak self] in self?.commitWorking() }
         palette.onDone = { [weak self] in self?.close(save: true) }
@@ -130,6 +137,13 @@ final class ZoneEditorController {
         guard let screen = screenUnderCursor() else { return }
         let key = ScreenManager.key(for: screen)
         working[key] = Grid.zones(columns: columns, rows: rows, gap: gap)
+        reloadEditorViews()
+    }
+
+    private func resetScreenToSingle() {
+        guard let screen = screenUnderCursor() else { return }
+        let key = ScreenManager.key(for: screen)
+        working[key] = [Zone(x: 0, y: 0, width: 1, height: 1)]
         reloadEditorViews()
     }
 

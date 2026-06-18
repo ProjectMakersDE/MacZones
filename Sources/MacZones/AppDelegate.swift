@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         _ = ProfileStore.shared
         ScreenManager.shared.refresh()
+        ProfileStore.shared.seedDefaultsIfNeeded(ScreenManager.shared.defaultSeedSpecs())
 
         statusBar = StatusBarController()
 
@@ -33,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func screensChanged() {
         ScreenManager.shared.refresh()
+        ProfileStore.shared.seedDefaultsIfNeeded(ScreenManager.shared.defaultSeedSpecs())
     }
 
     /// MacZones is a menu-bar app (no Dock icon). When it's launched again from

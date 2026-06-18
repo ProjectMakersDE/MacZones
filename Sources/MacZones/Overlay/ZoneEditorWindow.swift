@@ -22,6 +22,7 @@ final class ZoneEditorWindow: NSWindow {
         level = .popUpMenu
         collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
         isReleasedWhenClosed = false
+        acceptsMouseMovedEvents = true
         contentView = editorView
         setFrame(context.cocoaVisibleFrame, display: false)
     }
