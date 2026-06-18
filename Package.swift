@@ -10,6 +10,11 @@ let package = Package(
         .executableTarget(
             name: "MacZones",
             path: "Sources/MacZones"
+        ),
+        .testTarget(
+            name: "MacZonesTests",
+            dependencies: ["MacZones"],
+            path: "Tests/MacZonesTests"
         )
     ]
 )
