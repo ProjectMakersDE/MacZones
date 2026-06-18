@@ -144,8 +144,11 @@ final class EventTapController {
     private func onLeftUp(_ event: CGEvent) -> Unmanaged<CGEvent>? {
         defer {
             lmbDown = false
+            let rightStillHeld = rightHeld
             rightHeld = false
-            swallowRightUp = false
+            // If the right button is still down, its rightMouseUp is still
+            // coming — keep swallowing it so no context menu pops after the snap.
+            if !rightStillHeld { swallowRightUp = false }
             shake.reset()
         }
         if snapArmed {
