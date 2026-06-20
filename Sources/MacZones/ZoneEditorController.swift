@@ -73,7 +73,7 @@ final class ZoneEditorController {
     }
 
     private func commitWorking() {
-        ProfileStore.shared.setScreens(working)
+        ProfileStore.shared.mergeScreens(working)
     }
 
     private func reloadEditorViews() {

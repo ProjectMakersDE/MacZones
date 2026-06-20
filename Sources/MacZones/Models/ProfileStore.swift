@@ -80,10 +80,13 @@ final class ProfileStore {
         save()
     }
 
-    /// Replace several screens at once (used by the editor on save).
-    func setScreens(_ screens: [String: [Zone]]) {
+    /// Merge the edited screens into the current profile (used by the editor on
+    /// save). Only the screens the editor actually worked on — the ones
+    /// connected during editing — are touched; zones for monitors that weren't
+    /// connected at that moment are preserved instead of being wiped.
+    func mergeScreens(_ screens: [String: [Zone]]) {
         guard let idx = profiles.firstIndex(where: { $0.name == currentName }) else { return }
-        profiles[idx].screens = screens.filter { !$0.value.isEmpty }
+        profiles[idx].mergeScreens(screens)
         save()
     }
 
