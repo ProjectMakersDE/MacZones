@@ -82,23 +82,23 @@ jobs:
           body: |
             ## MacZones ${{ steps.ver.outputs.version }}
 
-            Leichtgewichtiges Window-Zonen-Snapping für macOS.
+            Lightweight window zone snapping for macOS.
 
-            Signiert mit einem stabilen, selbstsignierten Zertifikat – die
-            Bedienungshilfen-Berechtigung bleibt über zukünftige Updates erhalten.
-            Updates lassen sich direkt im Menü („Auf Updates prüfen …") laden.
+            Signed with a stable self-signed certificate, so the Accessibility
+            permission survives future updates. Updates can be installed from the
+            menu ("Auf Updates prüfen …", Check for updates).
 
             ### Installation
-            1. `MacZones.dmg` öffnen und **MacZones.app** in den Programme-Ordner ziehen
-               (oder `MacZones.zip` entpacken).
-            2. Da die App nicht über Apple notarisiert ist, einmalig die
-               Gatekeeper-Quarantäne entfernen:
+            1. Open `MacZones.dmg` and drag **MacZones.app** into Applications
+               (or unzip `MacZones.zip`).
+            2. The app is not notarized by Apple, so remove the Gatekeeper
+               quarantine once:
                ```
                xattr -dr com.apple.quarantine /Applications/MacZones.app
                ```
-            3. MacZones starten und in **Systemeinstellungen › Datenschutz &
-               Sicherheit › Bedienungshilfen** die Berechtigung erteilen.
+            3. Start MacZones and grant access in **System Settings › Privacy &
+               Security › Accessibility**.
 
-            > Beim Wechsel von einer älteren (ad-hoc signierten) Version bitte den
-            > alten „MacZones"-Eintrag in den Bedienungshilfen einmal entfernen (−)
-            > und neu hinzufügen. Ab dieser Version bleibt die Berechtigung erhalten.
+            > Coming from an older ad-hoc signed version? Remove the old "MacZones"
+            > entry in Accessibility once (−) and add it again. From this version on
+            > the permission is kept.
