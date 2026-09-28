@@ -84,8 +84,11 @@ Identität einrichten, danach jederzeit bauen + nach `/Applications` installiere
 
 ```bash
 ./scripts/setup-local-signing.sh        # einmalig: Zertifikat + lokale Keychain (+ CI-Secrets)
-./scripts/install-local.sh 0.4.1        # baut signiert und installiert nach /Applications
+./scripts/install-local.sh "$(git describe --tags --abbrev=0)"   # baut signiert und installiert nach /Applications
 ```
+
+Das Argument ist die Version, die in die App geschrieben wird; der Befehl oben
+nimmt das neueste Release-Tag.
 
 `setup-local-signing.sh` legt eine dedizierte Signier-Keychain an
 (`~/Library/Keychains/maczones-signing.keychain-db`) und hinterlegt dasselbe
