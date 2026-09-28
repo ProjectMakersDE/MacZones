@@ -1,70 +1,74 @@
 # MacZones
 
-**Leichtgewichtiges Fenster-Zonen-Snapping für macOS.**
+English | [Deutsch](README.de.md)
 
-MacZones ist eine bewusst minimale Alternative zu Tools wie
-[MacsyZones](https://github.com/rohanrhu/MacsyZones). Es kann genau eine Sache –
-Fenster in selbst definierte Zonen einrasten – und tut das mit **nahezu 0 % CPU
-im Leerlauf**.
+**Lightweight window zone snapping for macOS.**
 
-## Warum?
+MacZones is a deliberately minimal alternative to tools like
+[MacsyZones](https://github.com/rohanrhu/MacsyZones). It does exactly one
+thing, snapping windows into zones you define, and it does it with **close to
+0 % CPU when idle**.
 
-Viele Window-Manager laufen mit dauerhaft hoher CPU-Last (Polling, Analyse,
-Hintergrund-Tasks). MacZones hat **keine Timer und kein Polling**. Die gesamte
-Laufzeit-Aktivität hängt an einem einzigen passiven `CGEventTap`, der **nur dann
-feuert, wenn tatsächlich eine Maustaste gedrückt ist** (Down / Up / Drag).
-Bewegt man die Maus ohne gedrückte Taste, bekommt MacZones gar kein Event. Im
-Ruhezustand entstehen also keine Wakeups und keine messbare CPU-Last.
+The app's menus are in German. This README names each menu item in German with
+an English translation.
 
-## Funktionen (und nur die)
+## Why?
 
-- **Rechtsklick-Ziehen** – rechte Maustaste über einem Fenster gedrückt halten
-  und ziehen. Das Fenster folgt dem Mauszeiger, die Zonen erscheinen; beim
-  Loslassen über einer Zone rastet das Fenster ein. (Ein normaler Rechtsklick
-  ohne Ziehen öffnet wie gewohnt das Kontextmenü.)
-- **Einrasten beim Wackeln** – ein Fenster normal ziehen und kurz hin- und
-  herwackeln. Die Zonen erscheinen, beim Loslassen über einer Zone rastet das
-  Fenster ein.
-- **Mehrere Zonen zusammenfassen** – beim Ziehen über mehrere benachbarte Zonen
-  spannt das Fenster über deren gemeinsamen Bereich.
-- **Zonen-Editor pro Bildschirm** – Zonen aufziehen, verschieben, in der Größe
-  ändern und löschen. Öffnen per Menü oder Shortcut **⌃⌥Z**.
-- **Auto-Raster** – einen Bildschirm automatisch in *n* Spalten × *m* Zeilen
-  unterteilen (mit optionaler Lücke), entweder im Editor oder direkt über das
-  Menü „Schnelles Raster".
-- **Profile** – verschiedene Zonen-Layouts speichern und umschalten; pro
-  Bildschirm getrennt.
-- **Menüleisten-Symbol** mit allen Optionen, optional „Bei Anmeldung starten".
+Many window managers run with a constantly high CPU load (polling, analytics,
+background tasks). MacZones has **no timers and no polling**. All runtime
+activity hangs on a single passive `CGEventTap` that **only fires while a mouse
+button is actually pressed** (down / up / drag). If you move the mouse without
+pressing a button, MacZones receives no event at all. At rest there are no
+wakeups and no measurable CPU load.
 
-Bewusst **nicht** enthalten: Statistiken/Analyse, Hintergrund-Daemons,
-Cloud-Sync, Tastatur-Kacheln, Animationen-Overkill – nichts, was im Leerlauf
-Leistung zieht.
+## Features (and only these)
+
+- **Right-click drag**: hold the right mouse button over a window and drag.
+  The window follows the pointer and the zones appear; release over a zone and
+  the window snaps into it. (A normal right-click without dragging opens the
+  context menu as usual.)
+- **Snap on shake**: drag a window as usual and shake it briefly back and
+  forth. The zones appear; release over a zone and the window snaps into it.
+- **Combine several zones**: drag across several adjacent zones and the window
+  spans their combined area.
+- **Zone editor per screen**: draw, move, resize and delete zones. Open it from
+  the menu or with the shortcut **⌃⌥Z**.
+- **Auto grid**: split a screen automatically into *n* columns × *m* rows
+  (with an optional gap), either in the editor or directly from the menu
+  "Schnelles Raster" (Quick Grid).
+- **Profiles**: save different zone layouts and switch between them; kept
+  separately for each screen.
+- **Menu bar icon** with all options, optionally "Bei Anmeldung starten"
+  (Launch at Login).
+
+Deliberately **not** included: statistics/analytics, background daemons,
+cloud sync, keyboard tiling, excessive animations. Nothing that costs
+performance while idle.
 
 ## Installation
 
-### Fertige Version (empfohlen)
+### Prebuilt release (recommended)
 
-1. Unter [Releases](../../releases) die aktuelle `MacZones.dmg` (oder `.zip`)
-   herunterladen.
-2. `MacZones.app` in den Ordner **Programme** ziehen.
-3. Da die App nicht über Apple notarisiert ist, einmalig die
-   Gatekeeper-Quarantäne entfernen:
+1. Download the latest `MacZones.dmg` (or `.zip`) from
+   [Releases](../../releases).
+2. Drag `MacZones.app` into the **Applications** folder.
+3. Because the app is not notarized by Apple, remove the Gatekeeper quarantine
+   once:
    ```bash
    xattr -dr com.apple.quarantine /Applications/MacZones.app
    ```
-4. MacZones ganz normal aus **Programme** öffnen (Doppelklick). Es erscheint
-   **kein Dock-Symbol** – MacZones ist ein Menüleisten-Tool und zeigt sein
-   Symbol oben rechts in der Menüleiste. Über dieses Symbol erreichst du alle
-   Einstellungen (Profile, Raster, Berechtigung, Bei Anmeldung starten …).
-   Öffnest du die App erneut aus „Programme", während sie schon läuft, klappt
-   automatisch ihr Menü auf.
-5. Beim ersten Start nach der **Bedienungshilfen**-Berechtigung fragen lassen
-   (siehe unten). Die Berechtigung kannst du jederzeit auch über das
-   Menüleisten-Menü erteilen.
+4. Open MacZones from **Applications** as usual (double-click). There is **no
+   Dock icon**: MacZones is a menu bar tool and shows its icon at the top right
+   of the menu bar. That icon gives you all settings (profiles, grid,
+   permission, Launch at Login, and so on). If you open the app again from
+   Applications while it is already running, its menu opens automatically.
+5. On first launch, let it ask for the **Accessibility** permission (see
+   below). You can also grant the permission at any time from the menu bar
+   menu.
 
-### Selbst bauen
+### Build it yourself
 
-Voraussetzung: macOS 13+, Xcode / Swift 5.9+.
+Requirements: macOS 13+, Xcode / Swift 5.9+.
 
 ```bash
 git clone https://github.com/ProjectMakersDE/MacZones.git
@@ -73,97 +77,98 @@ cd MacZones
 open dist
 ```
 
-Das Skript erzeugt ein universelles (Apple Silicon + Intel) `MacZones.app`
-inklusive `.zip` und `.dmg` unter `dist/`.
+The script creates a universal (Apple silicon + Intel) `MacZones.app`,
+including `.zip` and `.dmg`, in `dist/`.
 
-#### Lokal installieren (mit stabiler Signatur)
+#### Install locally (with a stable signature)
 
-Damit lokale Builds dieselbe Signatur-Identität wie die Releases haben (und die
-Bedienungshilfen-Berechtigung erhalten bleibt), einmalig die lokale Signier-
-Identität einrichten, danach jederzeit bauen + nach `/Applications` installieren:
+So that local builds have the same signing identity as the releases (and the
+Accessibility permission is kept), set up the local signing identity once.
+After that you can build and install to `/Applications` at any time:
 
 ```bash
-./scripts/setup-local-signing.sh        # einmalig: Zertifikat + lokale Keychain (+ CI-Secrets)
-./scripts/install-local.sh "$(git describe --tags --abbrev=0)"   # baut signiert und installiert nach /Applications
+./scripts/setup-local-signing.sh        # once: certificate + local keychain (+ CI secrets)
+./scripts/install-local.sh "$(git describe --tags --abbrev=0)"   # builds signed and installs to /Applications
 ```
 
-Das Argument ist die Version, die in die App geschrieben wird; der Befehl oben
-nimmt das neueste Release-Tag.
+The argument is the version written into the app; the command above uses the
+latest release tag.
 
-`setup-local-signing.sh` legt eine dedizierte Signier-Keychain an
-(`~/Library/Keychains/maczones-signing.keychain-db`) und hinterlegt dasselbe
-Zertifikat als GitHub-Secrets, sodass CI-Releases und lokale Builds identisch
-signiert sind.
+`setup-local-signing.sh` creates a dedicated signing keychain
+(`~/Library/Keychains/maczones-signing.keychain-db`) and stores the same
+certificate as GitHub secrets, so CI releases and local builds are signed
+identically.
 
-## Berechtigung
+## Permission
 
-MacZones benötigt **Bedienungshilfen** (Accessibility), um Fenster anderer Apps zu
-bewegen und Mausgesten zu erkennen:
+MacZones needs **Accessibility** access to move windows of other apps and to
+detect mouse gestures:
 
-> Systemeinstellungen › Datenschutz & Sicherheit › **Bedienungshilfen** →
-> MacZones aktivieren.
+> System Settings › Privacy & Security › **Accessibility** →
+> enable MacZones.
 
-Kein Neustart nötig – sobald die Berechtigung erteilt ist, funktioniert MacZones
-sofort.
+No restart needed: as soon as the permission is granted, MacZones works right
+away.
 
-**Berechtigung bleibt über Updates erhalten:** Die Release-Builds werden mit
-einem **stabilen, selbstsignierten Zertifikat** signiert (gleiche Identität bei
-jedem Build). macOS bindet die Bedienungshilfen-Freigabe an diese Identität –
-deshalb muss sie nur **einmal** erteilt werden und bleibt bei künftigen Updates
-bestehen. (Beim Wechsel von einer alten ad-hoc-signierten Version den alten
-„MacZones"-Eintrag einmal entfernen (−) und neu hinzufügen.)
+**The permission is kept across updates:** release builds are signed with a
+**stable, self-signed certificate** (the same identity for every build). macOS
+ties the Accessibility grant to this identity, so you only grant it **once**
+and it stays in place for future updates. (When switching from an old ad-hoc
+signed version, remove the old "MacZones" entry once (−) and add it again.)
 
 ## Updates
 
-MacZones aktualisiert sich über GitHub-Releases:
+MacZones updates itself from GitHub Releases:
 
-- Menü → **„Auf Updates prüfen …"** lädt das neueste Release, installiert es und
-  startet MacZones neu (die Berechtigung bleibt dank gleichem Zertifikat
-  erhalten).
-- **„Beim Start nach Updates suchen"** (Standard: an) macht beim Start *einen*
-  stillen Check; ist eine neuere Version verfügbar, erscheint im Menü ein
-  Hinweis. Kein Hintergrund-Polling.
-- Die installierte Version steht oben im Menü und unter **„Über MacZones"**.
+- Menu → **"Auf Updates prüfen …"** (Check for Updates) downloads the latest
+  release, installs it and restarts MacZones (the permission is kept thanks to
+  the same certificate).
+- **"Beim Start nach Updates suchen"** (Check for Updates at Launch, on by
+  default) runs *one* silent check at launch; if a newer version is available,
+  the menu shows a notice. No background polling.
+- The installed version is shown at the top of the menu and under **"Über
+  MacZones"** (About MacZones).
 
-### Signatur-Zertifikat (für Maintainer)
+### Signing certificate (for maintainers)
 
-Das Signatur-Zertifikat wird einmalig erzeugt und als GitHub-Secrets hinterlegt:
+The signing certificate is created once and stored as GitHub secrets:
 
 ```bash
 ./scripts/create-signing-cert.sh ProjectMakersDE/MacZones
 ```
 
-Das setzt die Secrets `SIGNING_CERTIFICATE_P12_BASE64` und
-`SIGNING_CERTIFICATE_PASSWORD`. Der Build-Workflow importiert sie und signiert
-damit. Ohne diese Secrets fällt der Build automatisch auf Ad-hoc-Signatur zurück.
+This sets the secrets `SIGNING_CERTIFICATE_P12_BASE64` and
+`SIGNING_CERTIFICATE_PASSWORD`. The build workflow imports them and signs with
+them. Without these secrets the build falls back to ad-hoc signing
+automatically.
 
-## Bedienung in Kürze
+## Quick reference
 
-| Aktion | So geht's |
+| Action | How |
 | --- | --- |
-| Zonen bearbeiten | Menü → „Zonen bearbeiten" oder **⌃⌥Z** |
-| Zone teilen | im Editor **in eine Zone klicken** (teilt an der Stelle); **⌥** = horizontal |
-| Mit einer Zone starten | Palette → „Auf eine Zone zurücksetzen", dann teilen |
-| Auto-Raster | Palette → Schnellauswahl oder Spalten/Zeilen frei eingeben (bis 64 × 32) |
-| Fenster einrasten (Rechtsklick) | Rechte Maustaste über Fenster halten → ziehen → über Zone loslassen |
-| Fenster einrasten (Wackeln) | Fenster ziehen → kurz wackeln → über Zone loslassen |
-| Mehrere Zonen | beim Ziehen über benachbarte Zonen streichen |
-| Schnelles Raster | Menü → „Schnelles Raster" (gilt für den Bildschirm unter der Maus) |
-| Profil wechseln | Menü → „Profil" |
+| Edit zones | Menu → "Zonen bearbeiten" (Edit Zones) or **⌃⌥Z** |
+| Split a zone | In the editor, **click inside a zone** (splits at that point); **⌥** = horizontal |
+| Start with one zone | Palette → "Auf eine Zone zurücksetzen" (Reset to One Zone), then split |
+| Auto grid | Palette → "Schnellauswahl" (Quick Select), or enter any number of columns/rows (up to 64 × 32) |
+| Snap a window (right-click) | Hold the right mouse button over a window → drag → release over a zone |
+| Snap a window (shake) | Drag a window → shake briefly → release over a zone |
+| Several zones | While dragging, move across adjacent zones |
+| Quick grid | Menu → "Schnelles Raster" (Quick Grid, applies to the screen under the mouse) |
+| Switch profile | Menu → "Profil" (Profile) |
 
-## Architektur
+## Architecture
 
-| Datei | Zweck |
+| File | Purpose |
 | --- | --- |
-| `EventTapController.swift` | Der eine `CGEventTap`; verarbeitet beide Gesten, swallowt Rechtsklick-Drags, ist im Leerlauf inaktiv. |
-| `ShakeDetector.swift` | Erkennt das Wackeln aus Drag-Positionen (reine Arithmetik). |
-| `SnapSession.swift` | Zonen-Overlays + Zielberechnung während einer Geste. |
-| `ZoneEditorController.swift` | Editor-Fenster + Palette, Auto-Raster, Profile. |
-| `AX.swift` | Accessibility: Fenster finden / bewegen / skalieren. |
-| `ScreenManager.swift` | Koordinaten-Umrechnung Cocoa ↔ Quartz, pro Bildschirm. |
-| `ProfileStore.swift` | Profile + Einstellungen als JSON in Application Support. |
-| `StatusBarController.swift` | Menüleisten-Menü. |
+| `EventTapController.swift` | The one `CGEventTap`; handles both gestures, swallows right-click drags, inactive when idle. |
+| `ShakeDetector.swift` | Detects the shake from drag positions (pure arithmetic). |
+| `SnapSession.swift` | Zone overlays + target calculation during a gesture. |
+| `ZoneEditorController.swift` | Editor window + palette, auto grid, profiles. |
+| `AX.swift` | Accessibility: find / move / resize windows. |
+| `ScreenManager.swift` | Coordinate conversion Cocoa ↔ Quartz, per screen. |
+| `ProfileStore.swift` | Profiles + settings as JSON in Application Support. |
+| `StatusBarController.swift` | Menu bar menu. |
 
-## Lizenz
+## License
 
-MIT – siehe [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
