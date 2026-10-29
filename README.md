@@ -172,3 +172,10 @@ automatically.
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+### Native release runner
+
+Tag releases and explicitly requested development builds run only on the
+`daniel-macbook-native` ARM64 macOS runner on Daniel's current MacBook.
+The runner is started locally for a release and stopped afterwards. There is
+no GitHub-hosted or Proxmox build fallback.

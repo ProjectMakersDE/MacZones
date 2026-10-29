@@ -16,13 +16,12 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: [self-hosted, macOS, ARM64, daniel-macbook-native]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Select latest Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
       - name: Show toolchain
         run: swift --version
@@ -48,6 +47,7 @@ jobs:
           KEYCHAIN="$RUNNER_TEMP/maczones-signing.keychain-db"
           KCPWD="$(uuidgen)"
           echo "$CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security list-keychains -d user > "$RUNNER_TEMP/maczones-keychains-before.txt"
           security create-keychain -p "$KCPWD" "$KEYCHAIN"
           security set-keychain-settings -lut 21600 "$KEYCHAIN"
           security unlock-keychain -p "$KCPWD" "$KEYCHAIN"
@@ -102,3 +102,19 @@ jobs:
             > Coming from an older ad-hoc signed version? Remove the old "MacZones"
             > entry in Accessibility once (−) and add it again. From this version on
             > the permission is kept.
+
+      - name: Restore local signing keychains
+        if: always()
+        shell: python3 {0}
+        run: |
+          import os, pathlib, shlex, subprocess
+          temp = pathlib.Path(os.environ['RUNNER_TEMP'])
+          previous = temp / 'maczones-keychains-before.txt'
+          if previous.exists():
+              subprocess.run(['security', 'list-keychains', '-d', 'user', '-s',
+                              *shlex.split(previous.read_text())], check=True)
+              keychain = temp / 'maczones-signing.keychain-db'
+              if keychain.exists():
+                  subprocess.run(['security', 'delete-keychain', str(keychain)], check=True)
+              previous.unlink()
+          (temp / 'cert.p12').unlink(missing_ok=True)
